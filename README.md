@@ -1,6 +1,41 @@
 analytics-android
 =================
 
+## What is this?
+Investigation variant with logging enabled to locate possible ANRs happening on file I/O operations.
+
+Note: **Not for use in production.**
+
+![image](ANR-sample.png)
+
+
+## Instructions
+1. Clone this repo.
+2. Open it in Android Studio.
+3. Sync its Gradle dependencies.
+4. Assemble the AAR file.
+    ```sh
+    ./gradlew assemble
+    ```
+5. Retrieve the AAR file (`analytics-release.aar` [or `analytics-debug.aar`]) from `./analytics/build/outputs/aar`.
+6. Load the AAR into your project.
+7. Modify the SDK `dependencies` entry in your project's `./app/build.gradle` file.
+    ```groovy
+    dependencies {
+      // replaces this:
+      // implementation 'com.segment.analytics.android:analytics:4.9.3'
+      implementation (name: 'analytics-release', ext: 'aar')
+
+      // example of replacing Amplitude integration with Segment:
+      // implementation 'com.segment.analytics.android.integrations:amplitude:3.0.3'
+      implementation ('com.segment.analytics.android.integrations:amplitude:3.0.3') {
+        exclude group: 'com.segment.analytics.android', module: 'analytics'
+      }
+    }
+    ```
+
+-------
+
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.segment.analytics.android/analytics/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.segment.analytics.android/analytics)
 [![Javadocs](http://javadoc-badge.appspot.com/com.segment.analytics.android/analytics.svg?label=javadoc)](http://javadoc-badge.appspot.com/com.segment.analytics.android/analytics)
 [![CircleCI](https://circleci.com/gh/segmentio/analytics-android.svg?style=svg)](https://circleci.com/gh/segmentio/analytics-android)
