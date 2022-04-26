@@ -35,6 +35,7 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
+import android.os.Trace;
 import android.util.JsonWriter;
 import com.segment.analytics.integrations.AliasPayload;
 import com.segment.analytics.integrations.BasePayload;
@@ -154,14 +155,19 @@ class SegmentIntegration extends Integration<Void> {
      * {@link IOException} if the directory doesn't exist and could not be created.
      */
     static QueueFile createQueueFile(File folder, String name) throws IOException {
+        Trace.beginSection("SegmentIntegration.createQueueFile");
         createDirectory(folder);
         File file = new File(folder, name);
         try {
-            return new QueueFile(file);
+            QueueFile qf = new QueueFile(file);
+            Trace.endSection();
+            return qf;
         } catch (IOException e) {
             //noinspection ResultOfMethodCallIgnored
             if (file.delete()) {
-                return new QueueFile(file);
+                QueueFile qf = new QueueFile(file);
+                Trace.endSection();
+                return qf;
             } else {
                 throw new IOException(
                         "Could not create queue file (" + name + ") in " + folder + ".");
@@ -182,6 +188,7 @@ class SegmentIntegration extends Integration<Void> {
             Logger logger,
             Crypto crypto,
             ValueMap settings) {
+        Trace.beginSection("SegmentIntegration.create");
         PayloadQueue payloadQueue;
         try {
             File folder = context.getDir("segment-disk-queue", Context.MODE_PRIVATE);
@@ -192,7 +199,7 @@ class SegmentIntegration extends Integration<Void> {
             payloadQueue = new PayloadQueue.MemoryQueue();
         }
         String apiHost = settings.getString("apiHost");
-        return new SegmentIntegration(
+        SegmentIntegration segmentIntegration = new SegmentIntegration(
                 context,
                 client,
                 cartographer,
@@ -205,6 +212,8 @@ class SegmentIntegration extends Integration<Void> {
                 logger,
                 crypto,
                 apiHost);
+        Trace.endSection();
+        return segmentIntegration;
     }
 
     SegmentIntegration(
@@ -220,6 +229,7 @@ class SegmentIntegration extends Integration<Void> {
             Logger logger,
             Crypto crypto,
             String apiHost) {
+        Trace.beginSection("SegmentIntegration.<init>");
         this.context = context;
         this.client = client;
         this.networkExecutor = networkExecutor;
@@ -248,6 +258,7 @@ class SegmentIntegration extends Integration<Void> {
                 initialDelay,
                 flushIntervalInMillis,
                 TimeUnit.MILLISECONDS);
+        Trace.endSection();
     }
 
     @Override

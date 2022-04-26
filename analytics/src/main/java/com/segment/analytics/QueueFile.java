@@ -25,6 +25,8 @@ package com.segment.analytics;
 
 import static java.lang.Math.min;
 
+import android.os.Debug;
+import android.os.Trace;
 import com.segment.analytics.internal.Private;
 import java.io.Closeable;
 import java.io.EOFException;
@@ -34,7 +36,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.NoSuchElementException;
+import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -123,13 +128,25 @@ public class QueueFile implements Closeable {
         if (!file.exists()) {
             initialize(file);
         }
+        Trace.beginSection("QueueFile.<init>");
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd_MM_yyyy_hh_mm_ss", Locale.getDefault());
+        String logDate = dateFormat.format(new Date());
+        Debug.startMethodTracing(logDate + "_QueueFile.<init>");
         raf = open(file);
         readHeader();
+        Debug.stopMethodTracing();
+        Trace.endSection();
     }
 
     QueueFile(RandomAccessFile raf) throws IOException {
+        Trace.beginSection("QueueFile.<init> -- private");
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd_MM_yyyy_hh_mm_ss", Locale.getDefault());
+        String logDate = dateFormat.format(new Date());
+        Debug.startMethodTracing(logDate + "_QueueFile.<init> -- private");
         this.raf = raf;
         readHeader();
+        Debug.stopMethodTracing();
+        Trace.endSection();
     }
 
     /**
@@ -152,6 +169,10 @@ public class QueueFile implements Closeable {
     }
 
     private void readHeader() throws IOException {
+        Trace.beginSection("QueueFile.readHeader");
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd_MM_yyyy_hh_mm_ss", Locale.getDefault());
+        String logDate = dateFormat.format(new Date());
+        Debug.startMethodTracing(logDate + "_QueueFile.readHeader");
         raf.seek(0);
         raf.readFully(buffer);
         fileLength = readInt(buffer, 0);
@@ -160,20 +181,28 @@ public class QueueFile implements Closeable {
         int lastOffset = readInt(buffer, 12);
 
         if (fileLength > raf.length()) {
+            Debug.stopMethodTracing();
+            Trace.endSection();
             throw new IOException(
                     "File is truncated. Expected length: "
                             + fileLength
                             + ", Actual length: "
                             + raf.length());
         } else if (fileLength <= 0) {
+            Debug.stopMethodTracing();
+            Trace.endSection();
             throw new IOException(
                     "File is corrupt; length stored in header (" + fileLength + ") is invalid.");
         } else if (firstOffset < 0 || fileLength <= wrapPosition(firstOffset)) {
+            Debug.stopMethodTracing();
+            Trace.endSection();
             throw new IOException(
                     "File is corrupt; first position stored in header ("
                             + firstOffset
                             + ") is invalid.");
         } else if (lastOffset < 0 || fileLength <= wrapPosition(lastOffset)) {
+            Debug.stopMethodTracing();
+            Trace.endSection();
             throw new IOException(
                     "File is corrupt; last position stored in header ("
                             + lastOffset
@@ -181,6 +210,8 @@ public class QueueFile implements Closeable {
         }
         first = readElement(firstOffset);
         last = readElement(lastOffset);
+        Debug.stopMethodTracing();
+        Trace.endSection();
     }
 
     /**
@@ -228,7 +259,14 @@ public class QueueFile implements Closeable {
 
     /** Opens a random access file that writes synchronously. */
     private static RandomAccessFile open(File file) throws FileNotFoundException {
-        return new RandomAccessFile(file, "rwd");
+        Trace.beginSection("QueueFile.open");
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd_MM_yyyy_hh_mm_ss", Locale.getDefault());
+        String logDate = dateFormat.format(new Date());
+        Debug.startMethodTracing(logDate + "_QueueFile.open");
+        RandomAccessFile raf = new RandomAccessFile(file, "rwd");
+        Debug.stopMethodTracing();
+        Trace.endSection();
+        return raf;
     }
 
     /** Wraps the position if it exceeds the end of the file. */

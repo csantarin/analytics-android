@@ -28,6 +28,8 @@ import static com.segment.analytics.internal.Utils.isNullOrEmpty;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Trace;
+
 import com.segment.analytics.internal.Utils;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
@@ -398,6 +400,7 @@ public class ValueMap implements Map<String, Object> {
         }
 
         T get() {
+            Trace.beginSection("ValueMap.get");
             if (value == null) {
                 String json = preferences.getString(key, null);
                 if (isNullOrEmpty(json)) return null;
@@ -408,15 +411,22 @@ public class ValueMap implements Map<String, Object> {
                     return null;
                 }
             }
+            Trace.endSection();
             return value;
         }
 
         boolean isSet() {
-            return preferences.contains(key);
+            Trace.beginSection("ValueMap.isSet");
+            boolean hasKey = preferences.contains(key);
+            Trace.endSection();
+            return hasKey;
         }
 
         T create(Map<String, Object> map) {
-            return ValueMap.createValueMap(map, clazz);
+            Trace.beginSection("ValueMap.create");
+            T value = ValueMap.createValueMap(map, clazz);
+            Trace.endSection();
+            return value;
         }
 
         void set(T value) {

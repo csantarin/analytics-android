@@ -43,9 +43,11 @@ import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.os.Debug;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.os.Trace;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.lifecycle.Lifecycle;
@@ -62,12 +64,14 @@ import com.segment.analytics.internal.NanoDate;
 import com.segment.analytics.internal.Private;
 import com.segment.analytics.internal.Utils;
 import com.segment.analytics.internal.Utils.AnalyticsNetworkExecutorService;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
@@ -1413,6 +1417,10 @@ public class Analytics {
 
         /** Create a {@link Analytics} client. */
         public Analytics build() {
+            Trace.beginSection("Analytics.build");
+            SimpleDateFormat dateFormat = new SimpleDateFormat("dd_MM_yyyy_hh_mm_ss", Locale.getDefault());
+            String logDate = dateFormat.format(new Date());
+            Debug.startMethodTracing(logDate + "_Analytics.build");
             if (isNullOrEmpty(tag)) {
                 tag = writeKey;
             }
@@ -1495,7 +1503,7 @@ public class Analytics {
                 executor = Executors.newSingleThreadExecutor();
             }
             Lifecycle lifecycle = ProcessLifecycleOwner.get().getLifecycle();
-            return new Analytics(
+            Analytics analytics = new Analytics(
                     application,
                     networkExecutor,
                     stats,
@@ -1526,6 +1534,9 @@ public class Analytics {
                     nanosecondTimestamps,
                     useNewLifecycleMethods,
                     defaultApiHost);
+            Trace.endSection();
+            Debug.stopMethodTracing();
+            return analytics;
         }
     }
 
@@ -1598,6 +1609,10 @@ public class Analytics {
     }
 
     void performInitializeIntegrations(ProjectSettings projectSettings) throws AssertionError {
+        Trace.beginSection("Analytics.performInitializeIntegrations");
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd_MM_yyyy_hh_mm_ss", Locale.getDefault());
+        String logDate = dateFormat.format(new Date());
+        Debug.startMethodTracing(logDate + "_Analytics.performInitializeIntegrations");
         if (isNullOrEmpty(projectSettings)) {
             throw new AssertionError("ProjectSettings is empty!");
         }
@@ -1629,6 +1644,8 @@ public class Analytics {
             }
         }
         factories = null;
+        Debug.stopMethodTracing();
+        Trace.endSection();
     }
 
     /** Runs the given operation on all integrations. */
